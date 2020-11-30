@@ -1,0 +1,3 @@
+[submodule "vendor/tt-rss"]
+	path = vendor/tt-rss
+	url = https://git.tt-rss.org/fox/ttrss-docker-compose.git

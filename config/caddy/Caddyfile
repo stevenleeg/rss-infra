@@ -1,0 +1,7 @@
+rss-bridge.example.com {
+    reverse_proxy rss_bridge:80
+}
+
+rss.example.com {
+    reverse_proxy freshrss:80
+}

@@ -1,0 +1,48 @@
+version: '2.0'
+
+services:
+  caddy:
+    image: caddy
+    container_name: caddy
+    networks:
+      - default
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - './volumes/caddy:/data/caddy'
+      - './config/caddy/Caddyfile:/etc/caddy/Caddyfile'
+
+  ##
+  # RSS feeds
+  # 
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss_bridge
+    volumes:
+      - './config/rssbridge/whitelist.txt:/app/whitelist.txt'
+    expose:
+      - 80
+
+  freshrss:
+    image: freshrss/freshrss
+    volumes:
+      - './volumes/freshrss/data:/var/www/FreshRSS/data'
+      - './volumes/freshrss/ext:/var/www/FreshRSS/extensions'
+    environment:
+      - 'CRON_MIN=4,34'
+      - 'TZ=America/New_York'
+    expose:
+      - 8080
+
+  ##
+  # Backup
+  #
+  borg:
+    image: dannyben/borg-client
+    volumes:
+      - './volumes:/volumes'
+      - './backups:/repo'
+    environment:
+      BORG_REPO: '/repo'
+      BORG_PASSPHRASE: '[super secret passphrase here]'

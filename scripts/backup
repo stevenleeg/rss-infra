@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+case "$1" in
+    "init")
+        # Set up our backup repository. Generally you should only have to do
+        # this once, but if you lose your backup repo you'll need this command.
+        docker-compose run --rm borg init \
+            --encryption repokey-blake2 \
+            --progress \
+            /repo
+    ;;
+
+    "create")
+        # Creates a new backup in borg
+        docker-compose run --rm borg create \
+            --stats \
+            --progress \
+            --compression zlib,5 \
+            /repo::{now} \
+            /volumes
+
+        echo "Done! You're all backed up."
+    ;;
+
+    "list")
+        if [ -z "$2" ]; then
+            docker-compose run --rm borg list /repo
+        else
+            docker-compose run --rm borg list /repo::$2
+        fi
+    ;;
+
+    "restore")
+        if [ -z "$2" ]; then
+            echo "You must specify an archive to restore from"
+            exit 1
+        fi
+
+        read -p "This command will overwrite your existing volumes dir. Are you sure? (y/N): "
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Got it. Aborting!"
+            exit 1
+        fi
+
+        docker-compose run --rm --workdir / borg extract --list /repo::$2
+    ;;
+
+    "export")
+        date=$(date +%Y-%m-%d)
+        sudo tar -czvf ./borg-$date.tar.gz ./backups
+    ;;
+esac
